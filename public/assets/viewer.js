@@ -1,5 +1,5 @@
 import { hexToBytes } from './wcv3-header.js';
-import { makeAad, decryptFrame } from './wcv3-crypto.js';
+import { decryptFrame, decryptWcv2Frame } from './wcv3-crypto.js';
 
 /* ── WCV3 Data Layer ────────────────────────────── */
 class Wcv3DataLayer {
@@ -11,6 +11,8 @@ class Wcv3DataLayer {
     this.planner = session.planner;
     this.decryptedResources = session.decryptedResources;
     this.temporaryUrls = session.temporaryUrls;
+    this._wcv2PackageId = session._wcv2PackageId || null;
+    this._wcv2RecordById = session._wcv2RecordById || null;
     this._contacts = null;
     this._dates = null;
     this._searchIndex = null;
@@ -28,7 +30,13 @@ class Wcv3DataLayer {
     if (cached) return cached;
     const info = this._resourceById(rid);
     const frame = await this.reader.readFrame(info.offset, info.length);
-    const data = await decryptFrame(this.key, this.header, rid, frame);
+    let data;
+    if (this._wcv2PackageId) {
+      const recordIndex = this._wcv2RecordById[Array.from(rid, b => b.toString(16).padStart(2, '0')).join('')];
+      data = await decryptWcv2Frame(this.key, this._wcv2PackageId, recordIndex, frame);
+    } else {
+      data = await decryptFrame(this.key, this.header, rid, frame);
+    }
     this.decryptedResources.set(rid, data);
     return data;
   }

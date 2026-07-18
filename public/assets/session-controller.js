@@ -87,6 +87,8 @@ export class SessionController {
       header: candidate.header,
       manifest: candidate.manifest,
       planner: candidate.planner,
+      _wcv2PackageId: candidate._wcv2PackageId || null,
+      _wcv2RecordById: candidate._wcv2RecordById || null,
       decryptedResources: candidate.decryptedResources instanceof Map
         ? candidate.decryptedResources
         : new Map(),
@@ -144,6 +146,8 @@ export class SessionController {
       this.#session.reader = null;
       this.#session.header = null;
       this.#session.planner = null;
+      this.#session._wcv2PackageId = null;
+      this.#session._wcv2RecordById = null;
       this.#session.decryptedResources.clear();
       this.#session.temporaryUrls.clear();
       this.#session.file = null;

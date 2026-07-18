@@ -1,6 +1,6 @@
 import { SessionController } from './session-controller.js';
 import { UI_MESSAGES, UiRenderer } from './ui-renderer.js';
-import { createWcv3Session } from './wcv3-session-factory.js';
+import { createSession } from './wcv3-session-factory.js';
 import { bindLifecycle } from './lifecycle-events.js';
 import { initViewer, destroyViewer } from './viewer.js';
 
@@ -8,7 +8,7 @@ export function createApp(doc = document, options = {}) {
   const renderer = new UiRenderer(doc);
 
   const controller = new SessionController(renderer, {
-    createSession: options.createSession || createWcv3Session,
+    createSession: options.createSession || createSession,
     onTransition: (from, to) => {
       if (to === 'unlocked') {
         const viewerInit = options.initViewer || initViewer;
