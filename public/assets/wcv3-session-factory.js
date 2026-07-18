@@ -84,17 +84,27 @@ export async function createWcv2Session(file, password) {
     throw new Error('E_FORMAT');
   }
 
-  // Scan all resource frames to determine offset & length
+  // Scan resource frames with chunked reads (~35 reads instead of 9440)
   let offset = w2.manifestOffset + totalFrameLen;
   const resources = [];
   const recordIndexById = {};
+  const CHUNK = 4 * 1024 * 1024; // 4 MiB
+  let i = 0;
+  let buf = null;
+  let bufStart = 0;
 
-  for (let i = 0; i < wcv2Manifest.entries.length; i++) {
-    const entry = wcv2Manifest.entries[i];
-    const prefixBytes = await reader.readRange(offset, 16);
-    const cLen = new DataView(prefixBytes.buffer, prefixBytes.byteOffset, 4).getUint32(0, true);
+  while (i < wcv2Manifest.entries.length) {
+    if (!buf || offset - bufStart + 16 > buf.byteLength) {
+      const readLen = Math.min(CHUNK, file.size - offset);
+      buf = new Uint8Array(await file.slice(offset, offset + readLen).arrayBuffer());
+      bufStart = offset;
+    }
+
+    const relative = offset - bufStart;
+    const cLen = new DataView(buf.buffer, buf.byteOffset + relative, 4).getUint32(0, true);
     const frameLen = 4 + 12 + cLen;
     const idx = i + 1;
+    const entry = wcv2Manifest.entries[i];
 
     const id = padIndexToHex(idx);
     resources.push({
@@ -107,6 +117,7 @@ export async function createWcv2Session(file, password) {
     });
     recordIndexById[id] = idx;
     offset += frameLen;
+    i++;
   }
 
   // Build WCV3-compatible manifest
