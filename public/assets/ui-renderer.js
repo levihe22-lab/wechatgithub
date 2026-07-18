@@ -7,6 +7,7 @@ export const UI_MESSAGES = Object.freeze({
   IMPORTING: '正在当前页面内存中验证本地加密包…',
   CLEARING: '正在锁定并清除当前页面会话…',
   FAILURE: '无法验证此本地包。请重新选择文件并输入密码。',
+  AUTH_FAILURE: '密码错误，请重新输入。',
 });
 
 const TRANSIENT_SELECTORS = Object.freeze([

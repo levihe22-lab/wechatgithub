@@ -68,9 +68,9 @@ export class SessionController {
     try {
       candidate = await this.#createSession(file, password);
       if (!isAuthenticatedSession(candidate)) throw new Error('SESSION_RESULT_INVALID');
-    } catch {
+    } catch (err) {
       if (this.#attempt?.token === token) {
-        this.clear('import-failure', UI_MESSAGES.FAILURE);
+        this.clear('import-failure', err?.message === 'E_AUTH' ? UI_MESSAGES.AUTH_FAILURE : UI_MESSAGES.FAILURE);
       }
       return false;
     }
